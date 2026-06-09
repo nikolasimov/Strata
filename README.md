@@ -7,8 +7,8 @@ The goal is not to compete with production servers like nginx or Apache, but to 
 ## Current Goals
 
 - [x] TCP socket server
-- [ ] HTTP request parsing
-- [ ] HTTP response generation
+- [x] HTTP request parsing
+- [-] HTTP response generation
 - [ ] Routing
 - [ ] Middleware pipeline
 
