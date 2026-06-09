@@ -6,7 +6,8 @@ The goal is not to compete with production servers like nginx or Apache, but to 
 
 ## Important
 I am proud to announce right now Strata is no longer just a "learning socket project" - it's currently a real minimal functional web server
-Run:
+
+Just run
 python main.py
 
 Then open:
