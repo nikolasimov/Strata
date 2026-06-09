@@ -4,6 +4,9 @@ Strata is an educational HTTP/1.1 web server written from scratch in Python. The
 
 The goal is not to compete with production servers like nginx or Apache, but to learn how web servers work internally by implementing their core concepts step by step.
 
+## Important
+I am proud to announce right now Strata is no longer just a "learning socket project" - it's currently a real minimal functional web server
+
 ## Current Goals
 
 - [x] TCP socket server
