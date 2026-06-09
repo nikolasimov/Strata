@@ -6,11 +6,11 @@ The goal is not to compete with production servers like nginx or Apache, but to 
 
 ## Important
 I am proud to announce right now Strata is no longer just a "learning socket project" - it's currently a real minimal functional web server
-    Run:
-    python main.py
+Run:
+python main.py
 
-    Then open:
-    http://127.0.0.1:8080/
+Then open:
+http://127.0.0.1:8080/
 
 ## Current Goals
 
