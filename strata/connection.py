@@ -1,4 +1,4 @@
-from http.parser import HTTPParser
+from strata.http.parser import HTTPParser
 
 class Connection:
     def __init__(self, client_socket,client_address):
@@ -22,11 +22,5 @@ class Connection:
         )
 
 
-
         self.client_socket.sendall(response.encode())
-        
-        
-        
-        
-        
         self.client_socket.close()

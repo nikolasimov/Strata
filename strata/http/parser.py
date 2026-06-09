@@ -1,4 +1,4 @@
-from request import HTTPRequest
+from strata.http.request import HTTPRequest
 
 class HTTPParser:
     def parse(self, raw_data):
