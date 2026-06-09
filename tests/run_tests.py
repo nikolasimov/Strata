@@ -1,6 +1,9 @@
 import traceback
+
 import tests.test_parser
 import tests.test_response
+import tests.test_router  
+
 from tests.registry import tests
 
 
