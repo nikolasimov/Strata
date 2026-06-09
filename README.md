@@ -6,7 +6,7 @@ The goal is not to compete with production servers like nginx or Apache, but to 
 
 ## Current Goals
 
-- [ ] TCP socket server
+- [x] TCP socket server
 - [ ] HTTP request parsing
 - [ ] HTTP response generation
 - [ ] Routing
