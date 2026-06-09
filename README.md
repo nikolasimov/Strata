@@ -39,6 +39,7 @@ Strata is currently a working minimal web server capable of handling static file
 python main.py
 ```
 
+Includes a demo static vibecoded website
 Then open: http://127.0.0.1:8080/
 
 ## Design Philosophy
