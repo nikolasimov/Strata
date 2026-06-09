@@ -1,4 +1,5 @@
 from strata.http.parser import HTTPParser
+from strata.http.response import HTTPResponse
 
 class Connection:
     def __init__(self, client_socket,client_address):
@@ -13,14 +14,12 @@ class Connection:
         
         print(request.method, request.path)
         
-        response = (
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Type: text/plain\r\n"
-            "Content-Length: 2\r\n"
-            "\r\n"
+        response = HTTPResponse(
+            200, 
+            {"Content-Type": "text/plain"},
             "OK"
         )
-
-
-        self.client_socket.sendall(response.encode())
+        
+        
+        self.client_socket.sendall(response.to_bytes())
         self.client_socket.close()
