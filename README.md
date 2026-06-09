@@ -22,7 +22,7 @@ I am proud to announce right now Strata is no longer just a "learning socket pro
 
 ## Planned Features
 
-- [ ] Static file serving
+- [x] Static file serving
 - [ ] Keep-alive connections
 - [ ] Selector-based concurrency
 - [ ] Configuration system
