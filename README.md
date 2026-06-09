@@ -26,7 +26,7 @@ Strata is currently a working minimal web server capable of handling static file
 
 ## Planned Features
 
-- [ ] Reverse proxy
+- [x] Reverse proxy
 - [ ] Middleware pipeline
 - [ ] Keep-alive connections
 - [ ] Configuration system

@@ -1,6 +1,7 @@
 from strata.http.static import StaticFileHandler
 from strata.http.response import HTTPResponse
 from strata.http.parser import HTTPParser
+from strata.http.proxy import ReverseProxy
 
 
 class Connection:
@@ -15,11 +16,21 @@ class Connection:
         parser = HTTPParser()
         request = parser.parse(data)
 
-        static = StaticFileHandler()
+        #PROXY
+        proxy = self.router.match_proxy(request.path)
+        if proxy:
+            proxy_handler = ReverseProxy()
+            raw_response = proxy_handler.forward(request, proxy)
 
+            self.client_socket.sendall(raw_response)
+            self.client_socket.close()
+            return
+
+        #STATIC
+        static = StaticFileHandler()
         file_content, content_type = static.get_file(request.path)
-        
-        if file_content:
+
+        if file_content is not None:
             response = HTTPResponse(
                 200,
                 {"Content-Type": content_type},
@@ -29,8 +40,16 @@ class Connection:
             self.client_socket.close()
             return
 
+        #ROUTER
         handler = self.router.resolve(request)
         response = handler(request)
+
+        if response is None:
+            response = HTTPResponse(
+                500,
+                {"Content-Type": "text/plain"},
+                "Handler returned no response"
+            )
 
         self.client_socket.sendall(response.to_bytes())
         self.client_socket.close()

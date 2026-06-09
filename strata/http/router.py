@@ -3,6 +3,7 @@ class HTTPRouter:
 
     def __init__(self):
         self.routes = {}
+        self.proxy_routes = {}
 
     def add(self, method, path, handler):
         method = method.upper()
@@ -27,13 +28,7 @@ class HTTPRouter:
 
     def resolve(self, request):
         route_key = (request.method, request.path)
-
-        handler = self.routes.get(route_key)
-
-        if handler is None:
-            return self.not_found
-
-        return handler
+        return self.routes.get(route_key, self.not_found)
 
     def not_found(self, request):
         from strata.http.response import HTTPResponse
@@ -43,3 +38,12 @@ class HTTPRouter:
             headers={"Content-Type": "text/plain"},
             body=f"404 Not Found\n",
         )
+    
+    def add_proxy(self, path_prefix, target_url):
+        self.proxy_routes[path_prefix] = target_url
+        
+    def match_proxy(self, path):
+        for prefix, target in self.proxy_routes.items():
+            if path.startswith(prefix):
+                return target
+        return None
