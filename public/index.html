@@ -1,12 +1,816 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <link rel="stylesheet" href="style.css">
-    <title>Strata</title>
-  </head>
-  <body>
-    <h1>Strata Static Server Works
-    </h1>
-  </body>
-  <script src="app.js"></script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strata — Educational HTTP Server</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --bg2:       #13161e;
+    --bg3:       #1a1e29;
+    --border:    rgba(255,255,255,0.07);
+    --border2:   rgba(255,255,255,0.12);
+    --text:      #e8eaf0;
+    --muted:     #7a8099;
+    --amber:     #f0a020;
+    --amber-dim: rgba(240,160,32,0.12);
+    --teal:      #2fd8b0;
+    --teal-dim:  rgba(47,216,176,0.10);
+    --red:       #f06070;
+    --blue:      #6090f0;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Inter', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  a { color: var(--amber); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,15,20,0.88);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.04em;
+  }
+  .nav-logo span { color: var(--muted); font-weight: 400; }
+  nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+  }
+  nav ul a {
+    color: var(--muted);
+    font-size: 13px;
+    font-family: var(--mono);
+    transition: color 0.2s;
+  }
+  nav ul a:hover { color: var(--text); text-decoration: none; }
+
+  /* HERO */
+  .hero {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 7rem 2rem 5rem;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 1px;
+    background: var(--amber);
+  }
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 300;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 1.5rem;
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--amber);
+    font-weight: 500;
+  }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.6rem 1.4rem;
+    border-radius: 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: var(--amber);
+    color: #0d0f14;
+    border-color: var(--amber);
+  }
+  .btn-primary:hover { background: #fdb030; text-decoration: none; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border2);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); text-decoration: none; }
+
+  /* TERMINAL */
+  .terminal-wrap {
+    max-width: 900px;
+    margin: 0 auto 6rem;
+    padding: 0 2rem;
+  }
+  .terminal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .terminal-bar {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-r { background: #f06070; }
+  .dot-y { background: #f0a020; }
+  .dot-g { background: #2fd8b0; }
+  .terminal-title {
+    margin-left: auto;
+    margin-right: auto;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    transform: translateX(-22px);
+  }
+  .terminal-body {
+    padding: 1.4rem 1.6rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+    min-height: 200px;
+  }
+  .t-prompt { color: var(--teal); }
+  .t-cmd { color: var(--text); }
+  .t-comment { color: var(--muted); }
+  .t-key { color: var(--blue); }
+  .t-val { color: var(--amber); }
+  .t-success { color: var(--teal); }
+  .t-err { color: var(--red); }
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--amber);
+    vertical-align: -2px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* SECTION BASE */
+  section { padding: 5rem 2rem; }
+  .section-inner { max-width: 900px; margin: 0 auto; }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  h2 {
+    font-size: 1.9rem;
+    font-weight: 400;
+    letter-spacing: -0.015em;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+  .section-desc {
+    color: var(--muted);
+    max-width: 540px;
+    margin-bottom: 3rem;
+  }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 2rem;
+  }
+
+  /* ARCHITECTURE / LAYERS */
+  .layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .layer {
+    display: grid;
+    grid-template-columns: 120px 1fr auto;
+    align-items: start;
+    padding: 1.4rem 1.6rem;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    transition: background 0.2s, border-color 0.2s;
+    cursor: default;
+    gap: 1.5rem;
+  }
+  .layer:first-child { border-radius: 10px 10px 0 0; }
+  .layer:last-child  { border-radius: 0 0 10px 10px; }
+  .layer + .layer    { border-top: none; }
+  .layer:hover {
+    background: var(--bg3);
+    border-color: var(--border2);
+    z-index: 1;
+    position: relative;
+  }
+  .layer-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    padding-top: 3px;
+  }
+  .layer-name {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--amber);
+    margin-bottom: 4px;
+  }
+  .layer-desc {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .layer-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    align-self: flex-start;
+    margin-top: 2px;
+  }
+  .tag-live  { background: var(--teal-dim);  color: var(--teal);  border: 1px solid rgba(47,216,176,0.2); }
+  .tag-plan  { background: rgba(120,120,180,0.1); color: #9090c0; border: 1px solid rgba(120,120,180,0.2); }
+
+  /* FEATURES GRID */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .feature-card {
+    background: var(--bg2);
+    padding: 1.6rem 1.8rem;
+    transition: background 0.2s;
+  }
+  .feature-card:hover { background: var(--bg3); }
+  .feature-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--amber-dim);
+    border: 1px solid rgba(240,160,32,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 16px;
+  }
+  .feature-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .feature-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* REQUEST LIFECYCLE */
+  .lifecycle {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .lifecycle-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+  .lifecycle-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .run-btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: var(--amber-dim);
+    border: 1px solid rgba(240,160,32,0.25);
+    color: var(--amber);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .run-btn:hover { background: rgba(240,160,32,0.18); }
+  .lc-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .lc-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+  .lc-step:last-child { border-bottom: none; }
+  .lc-step.active { opacity: 1; }
+  .lc-step-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .lc-step.active .lc-step-icon {
+    background: var(--amber-dim);
+    border-color: rgba(240,160,32,0.3);
+  }
+  .lc-step-label {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .lc-step-detail {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .lc-step.active .lc-step-label { color: var(--amber); }
+
+  /* ROADMAP */
+  .roadmap-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .roadmap-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.85rem 1.2rem;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    transition: border-color 0.2s;
+  }
+  .roadmap-item:hover { border-color: var(--border2); }
+  .roadmap-item .check {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: var(--teal-dim);
+    border: 1px solid rgba(47,216,176,0.25);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--teal); flex-shrink: 0;
+  }
+  .roadmap-item .box {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 1px solid var(--border2);
+    flex-shrink: 0;
+  }
+  .roadmap-item.done { color: var(--text); }
+
+  /* CODE SNIPPET */
+  .code-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+  }
+  .c-def  { color: var(--blue); }
+  .c-fn   { color: var(--amber); }
+  .c-str  { color: var(--teal); }
+  .c-kw   { color: #c084fc; }
+  .c-cmt  { color: var(--muted); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--amber); }
+
+  @media (max-width: 600px) {
+    .layer { grid-template-columns: 80px 1fr; }
+    .layer-tag { display: none; }
+    h1 { font-size: 2rem; }
+    nav ul { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">strata<span>/server</span></div>
+  <ul>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#lifecycle">Lifecycle</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" style="padding-bottom: 3rem;">
+  <div class="eyebrow">HTTP/1.1 · Python · Educational</div>
+  <h1>A web server<br>built to be <em>read</em></h1>
+  <p class="hero-sub">
+    Strata is an HTTP/1.1 server written from scratch in Python — no frameworks, no magic.
+    Every layer is deliberate, every line is a lesson.
+  </p>
+  <div class="hero-actions">
+    <a href="#lifecycle" class="btn btn-primary">→ See how it works</a>
+    <a href="#architecture" class="btn btn-ghost">View architecture</a>
+  </div>
+</section>
+
+<!-- TERMINAL -->
+<div class="terminal-wrap">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="terminal-title">bash</div>
+    </div>
+    <div class="terminal-body" id="terminal-body">
+      <div id="terminal-lines"></div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="section-inner">
+    <div class="section-label">Architecture</div>
+    <h2>Built in layers</h2>
+    <p class="section-desc">Each layer of Strata has a single responsibility. Together they form a complete HTTP server you can trace from socket to response.</p>
+    <div class="layers">
+      <div class="layer">
+        <span class="layer-num">layer 01</span>
+        <div>
+          <div class="layer-name">TCP socket server</div>
+          <div class="layer-desc">Opens a raw TCP socket, binds to a port, and accepts incoming connections. The foundation everything else sits on.</div>
+        </div>
+        <span class="layer-tag tag-live">live</span>
+      </div>
+      <div class="layer">
+        <span class="layer-num">layer 02</span>
+        <div>
+          <div class="layer-name">HTTP parser</div>
+          <div class="layer-desc">Reads raw bytes from the socket and constructs a structured request object — method, path, headers, body.</div>
+        </div>
+        <span class="layer-tag tag-live">live</span>
+      </div>
+      <div class="layer">
+        <span class="layer-num">layer 03</span>
+        <div>
+          <div class="layer-name">Request router</div>
+          <div class="layer-desc">Matches the parsed path against registered routes and dispatches to the correct handler function.</div>
+        </div>
+        <span class="layer-tag tag-live">live</span>
+      </div>
+      <div class="layer">
+        <span class="layer-num">layer 04</span>
+        <div>
+          <div class="layer-name">Static file resolver</div>
+          <div class="layer-desc">Serves files from the <code style="font-family:var(--mono);font-size:12px;color:var(--teal)">/public</code> directory. Detects MIME types for HTML, CSS, JS and more.</div>
+        </div>
+        <span class="layer-tag tag-live">live</span>
+      </div>
+      <div class="layer">
+        <span class="layer-num">layer 05</span>
+        <div>
+          <div class="layer-name">Middleware pipeline</div>
+          <div class="layer-desc">A composable chain of functions that can inspect, modify, or short-circuit every request and response.</div>
+        </div>
+        <span class="layer-tag tag-plan">planned</span>
+      </div>
+      <div class="layer">
+        <span class="layer-num">layer 06</span>
+        <div>
+          <div class="layer-name">Reverse proxy</div>
+          <div class="layer-desc">Forwards requests to upstream services — the last and most complex layer to implement.</div>
+        </div>
+        <span class="layer-tag tag-plan">planned</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner">
+    <div class="section-label">Current features</div>
+    <h2>What works today</h2>
+    <p class="section-desc">The core HTTP machinery is complete. Strata can serve a real website right now.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⌁</div>
+        <div class="feature-title">TCP networking</div>
+        <div class="feature-desc">Raw socket handling — no <code style="font-size:11px;color:var(--teal)">socketserver</code>, just <code style="font-size:11px;color:var(--teal)">socket.socket</code>.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⟶</div>
+        <div class="feature-title">HTTP/1.1 parsing</div>
+        <div class="feature-desc">Parses method, path, version, headers, and body from raw byte streams.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">◎</div>
+        <div class="feature-title">Response builder</div>
+        <div class="feature-desc">Constructs well-formed HTTP responses with correct status lines and headers.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⊞</div>
+        <div class="feature-title">Route matching</div>
+        <div class="feature-desc">Register handlers for paths. Requests are dispatched to the first match.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⊡</div>
+        <div class="feature-title">Static file serving</div>
+        <div class="feature-desc">Serve any file from <code style="font-size:11px;color:var(--teal)">/public</code> over HTTP with correct MIME types.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">≋</div>
+        <div class="feature-title">MIME detection</div>
+        <div class="feature-desc">Automatically sets <code style="font-size:11px;color:var(--teal)">Content-Type</code> for HTML, CSS, JS, and more.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- REQUEST LIFECYCLE -->
+<section id="lifecycle">
+  <div class="section-inner">
+    <div class="section-label">Request lifecycle</div>
+    <h2>A request, step by step</h2>
+    <p class="section-desc">Trace exactly what happens when a browser hits Strata on port 8080.</p>
+    <div class="lifecycle">
+      <div class="lifecycle-header">
+        <span class="lifecycle-title">GET /index.html HTTP/1.1</span>
+        <button class="run-btn" id="run-btn" onclick="runLifecycle()">▶ run</button>
+      </div>
+      <div class="lc-steps" id="lc-steps">
+        <div class="lc-step" data-i="0">
+          <div class="lc-step-icon">⌁</div>
+          <div>
+            <div class="lc-step-label">TCP connection accepted</div>
+            <div class="lc-step-detail">socket.accept() → (conn, addr) — client is 127.0.0.1:51240</div>
+          </div>
+        </div>
+        <div class="lc-step" data-i="1">
+          <div class="lc-step-icon">⟶</div>
+          <div>
+            <div class="lc-step-label">Raw bytes received</div>
+            <div class="lc-step-detail">conn.recv(4096) → b"GET /index.html HTTP/1.1\r\nHost: ..."</div>
+          </div>
+        </div>
+        <div class="lc-step" data-i="2">
+          <div class="lc-step-icon">◎</div>
+          <div>
+            <div class="lc-step-label">HTTP request parsed</div>
+            <div class="lc-step-detail">method="GET"  path="/index.html"  version="HTTP/1.1"</div>
+          </div>
+        </div>
+        <div class="lc-step" data-i="3">
+          <div class="lc-step-icon">⊞</div>
+          <div>
+            <div class="lc-step-label">Route matched</div>
+            <div class="lc-step-detail">No dynamic route — falling through to static file handler</div>
+          </div>
+        </div>
+        <div class="lc-step" data-i="4">
+          <div class="lc-step-icon">⊡</div>
+          <div>
+            <div class="lc-step-label">File resolved</div>
+            <div class="lc-step-detail">./public/index.html → exists  MIME: text/html</div>
+          </div>
+        </div>
+        <div class="lc-step" data-i="5">
+          <div class="lc-step-icon">✓</div>
+          <div>
+            <div class="lc-step-label">Response sent</div>
+            <div class="lc-step-detail">HTTP/1.1 200 OK  Content-Type: text/html  Content-Length: 1842</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CODE SNIPPET -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">Internals</div>
+    <h2>The core loop</h2>
+    <p class="section-desc">This is the heart of Strata. Everything else is just careful plumbing around these few lines.</p>
+    <div class="code-block"><span class="c-kw">while</span> <span class="c-fn">True</span>:
+    conn, addr = server_socket.<span class="c-fn">accept</span>()           <span class="c-cmt"># block until a client connects</span>
+    raw = conn.<span class="c-fn">recv</span>(<span class="c-str">4096</span>)                      <span class="c-cmt"># read raw bytes off the wire</span>
+    request = http.<span class="c-fn">parse</span>(raw)                  <span class="c-cmt"># parse into a Request object</span>
+    handler = router.<span class="c-fn">match</span>(request.path)        <span class="c-cmt"># find the right handler</span>
+    response = handler.<span class="c-fn">handle</span>(request)          <span class="c-cmt"># generate a Response</span>
+    conn.<span class="c-fn">sendall</span>(response.<span class="c-fn">to_bytes</span>())           <span class="c-cmt"># write it back</span>
+    conn.<span class="c-fn">close</span>()                                <span class="c-cmt"># done — HTTP/1.0 style</span></div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-inner">
+    <div class="section-label">Roadmap</div>
+    <h2>What's coming</h2>
+    <p class="section-desc">Strata grows one layer at a time. Each feature deepens the understanding of how real servers work.</p>
+    <div class="roadmap-list">
+      <div class="roadmap-item done"><div class="check">✓</div> TCP socket server</div>
+      <div class="roadmap-item done"><div class="check">✓</div> HTTP/1.1 request parsing</div>
+      <div class="roadmap-item done"><div class="check">✓</div> HTTP response generation</div>
+      <div class="roadmap-item done"><div class="check">✓</div> Request routing system</div>
+      <div class="roadmap-item done"><div class="check">✓</div> Static file serving with MIME detection</div>
+      <div class="roadmap-item"><div class="box"></div> Request / response logging</div>
+      <div class="roadmap-item"><div class="box"></div> Keep-alive connections</div>
+      <div class="roadmap-item"><div class="box"></div> Configuration system</div>
+      <div class="roadmap-item"><div class="box"></div> Middleware pipeline</div>
+      <div class="roadmap-item"><div class="box"></div> Reverse proxy support</div>
+      <div class="roadmap-item"><div class="box"></div> HTTPS via Python <code style="font-size:11px;color:var(--teal)">ssl</code></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- QUICK START -->
+<section>
+  <div class="section-inner">
+    <div class="section-label">Getting started</div>
+    <h2>Run it in one line</h2>
+    <p class="section-desc">No dependencies. No install. Just Python and a clone.</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div class="code-block"><span class="t-comment"># clone and start</span>
+<span style="color:var(--teal)">git clone</span> https://github.com/you/strata
+<span style="color:var(--teal)">python</span> main.py</div>
+      <div class="code-block"><span class="t-comment"># then open</span>
+<span style="color:var(--amber)">http://127.0.0.1:8080/</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Strata is an educational project — not intended for production use.</p>
+  <p style="margin-top:6px;">Built to understand, not to scale.</p>
+</footer>
+
+<script>
+  const lines = [
+    { delay: 0,    html: '<span class="t-prompt">$</span> <span class="t-cmd">python main.py</span>' },
+    { delay: 600,  html: '<span class="t-comment">Strata starting up...</span>' },
+    { delay: 1100, html: '<span class="t-key">  host</span>  <span class="t-val">127.0.0.1</span>' },
+    { delay: 1400, html: '<span class="t-key">  port</span>  <span class="t-val">8080</span>' },
+    { delay: 1700, html: '<span class="t-key">  root</span>  <span class="t-val">./public</span>' },
+    { delay: 2100, html: '<span class="t-success">✓ Listening on http://127.0.0.1:8080</span>' },
+    { delay: 3000, html: '' },
+    { delay: 3100, html: '<span class="t-prompt">$</span> <span class="t-cmd">curl -i http://127.0.0.1:8080/</span>' },
+    { delay: 3800, html: '<span class="t-key">HTTP/1.1</span> <span class="t-success">200 OK</span>' },
+    { delay: 4000, html: '<span class="t-key">Content-Type:</span> <span class="t-val">text/html</span>' },
+    { delay: 4200, html: '<span class="t-key">Content-Length:</span> <span class="t-val">1842</span>' },
+    { delay: 4500, html: '' },
+    { delay: 4600, html: '<span class="t-comment">&lt;!DOCTYPE html&gt;...</span>' },
+  ];
+
+  const container = document.getElementById('terminal-lines');
+  lines.forEach(({ delay, html }) => {
+    setTimeout(() => {
+      if (html === '') {
+        container.insertAdjacentHTML('beforeend', '<br>');
+      } else {
+        container.insertAdjacentHTML('beforeend', `<div>${html}</div>`);
+      }
+    }, delay + 400);
+  });
+
+  function runLifecycle() {
+    const steps = document.querySelectorAll('.lc-step');
+    const btn = document.getElementById('run-btn');
+    btn.disabled = true;
+    btn.textContent = '◌ running';
+    steps.forEach(s => s.classList.remove('active'));
+    steps.forEach((step, i) => {
+      setTimeout(() => {
+        step.classList.add('active');
+        if (i === steps.length - 1) {
+          btn.disabled = false;
+          btn.textContent = '▶ run again';
+        }
+      }, i * 480 + 100);
+    });
+  }
+
+  setTimeout(runLifecycle, 1200);
+</script>
+</body>
 </html>
