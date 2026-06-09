@@ -1,8 +1,34 @@
 from strata.server import Server
+from strata.http.router import HTTPRouter
+from strata.http.response import HTTPResponse
 
-def main():
-    server = Server(host="127.0.0.1", port=8080)
+
+router = HTTPRouter()
+
+
+def home(request):
+    return HTTPResponse(
+        status_code=200,
+        headers={"Content-Type": "text/plain"},
+        body="Welcome to Strata\n",
+    )
+
+
+def hello(request):
+    return HTTPResponse(
+        status_code=200,
+        headers={"Content-Type": "text/plain"},
+        body="Hello from Strata\n",
+    )
+
+
+router.add("GET", "/", home)
+router.add("GET", "/hello", hello)
+
+
+server = Server(router=router)
+
+try:
     server.start()
-
-if __name__ == "__main__":
-    main()
+except KeyboardInterrupt:
+    server.stop()

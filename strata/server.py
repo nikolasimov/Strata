@@ -2,7 +2,8 @@ import socket
 from strata.connection import Connection
 
 class Server:
-    def __init__(self, host: str = "127.0.0.1", port: int = 8000, backlog: int = 5):
+    def __init__(self, router, host: str = "127.0.0.1", port: int = 8080, backlog: int = 5):
+        self.router = router
         self.host = host
         self.port = port
         self.backlog = backlog
@@ -36,7 +37,7 @@ class Server:
                 client_socket, client_address = self.server_socket.accept()
                 print(f"[Strata] connection from {client_address}")
                 
-                connection = Connection(client_socket, client_address)
+                connection = Connection(client_socket, client_address, self.router)
                 connection.handle()
                 
         except KeyboardInterrupt:
@@ -48,6 +49,7 @@ class Server:
         self.is_running = False
         
         if self.server_socket:
-            self.server_socket.close
+            self.server_socket.close()
             self.server_socket = None
+            
         print("[Strata] Server stopped.")

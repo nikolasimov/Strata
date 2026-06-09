@@ -9,7 +9,7 @@ The goal is not to compete with production servers like nginx or Apache, but to 
 - [x] TCP socket server
 - [x] HTTP request parsing
 - [x] HTTP response generation
-- [ ] Routing
+- [x] Routing
 - [ ] Middleware pipeline
 
 ## Planned Features
