@@ -1,11 +1,18 @@
-from .base import Middleware
+from strata.http.middleware.base import Middleware
+from strata.logging import logger
+
 
 class LoggerMiddleware(Middleware):
     def process(self, request, next_handler):
-        print(f"[Strata] {request.method} {request.path}")
-
         response = next_handler(request)
 
-        print(f"[Strata] done")
+        status = getattr(response, "status_code", "???")
+
+        logger.info(
+            f"{request.client_address[0]} "
+            f"{request.method} "
+            f"{request.path} "
+            f"-> {status}"
+        )
 
         return response

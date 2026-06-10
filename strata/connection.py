@@ -15,6 +15,8 @@ class Connection:
 
         parser = HTTPParser()
         request = parser.parse(data)
+        
+        request.client_address = self.client_address
 
         def final_handler(req):
 

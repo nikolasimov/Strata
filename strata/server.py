@@ -1,7 +1,7 @@
 import socket
 from strata.connection import Connection
 from strata.config import Config
-
+from strata.logging import logger
 
 class Server:
     def __init__(self, router):
@@ -28,7 +28,7 @@ class Server:
         self.server_socket.bind((self.host, self.port))
         self.server_socket.listen(self.backlog)
 
-        print(f"[Strata] listening on http://{self.host}:{self.port}")
+        logger.info(f"Server started on http://{self.host}:{self.port}")
 
     def start(self):
         self._setup_socket()
@@ -37,7 +37,7 @@ class Server:
         try:
             while self.is_running:
                 client_socket, client_address = self.server_socket.accept()
-                print(f"[Strata] connection from {client_address}")
+                logger.info(f"Connection from {client_address}")
 
                 connection = Connection(
                     client_socket,
@@ -48,7 +48,7 @@ class Server:
                 connection.handle()
 
         except KeyboardInterrupt:
-            print("\n[Strata] shutting down server...")
+            logger.info("Shutting down server...")
         finally:
             self.stop()
 
@@ -59,4 +59,4 @@ class Server:
             self.server_socket.close()
             self.server_socket = None
 
-        print("[Strata] server stopped.")
+        logger.info("Server stopped.")

@@ -1,10 +1,12 @@
 from strata.server import Server
 from strata.http.router import HTTPRouter
 from strata.config import Config
+from strata.http.middleware.logger import LoggerMiddleware
 
 
 config = Config()
 router = HTTPRouter()
+router.use(LoggerMiddleware())
 
 # -------------------------
 # Example routes
