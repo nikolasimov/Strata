@@ -1,7 +1,6 @@
 import os
 import mimetypes
 
-
 class StaticFileHandler:
     def __init__(self, base_dir="public"):
         self.base_dir = os.path.abspath(base_dir)

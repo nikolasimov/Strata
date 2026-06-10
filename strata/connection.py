@@ -16,40 +16,30 @@ class Connection:
         parser = HTTPParser()
         request = parser.parse(data)
 
-        #PROXY
-        proxy = self.router.match_proxy(request.path)
-        if proxy:
-            proxy_handler = ReverseProxy()
-            raw_response = proxy_handler.forward(request, proxy)
+        def final_handler(req):
 
-            self.client_socket.sendall(raw_response)
-            self.client_socket.close()
-            return
+            #Proxy
+            proxy = self.router.match_proxy(req.path)
+            if proxy:
+                proxy_handler = ReverseProxy()
+                return proxy_handler.forward(req, proxy)
 
-        #STATIC
-        static = StaticFileHandler()
-        file_content, content_type = static.get_file(request.path)
+            #Static
+            static = StaticFileHandler()
+            file_content, content_type = static.get_file(req.path)
 
-        if file_content is not None:
-            response = HTTPResponse(
-                200,
-                {"Content-Type": content_type},
-                file_content
-            )
-            self.client_socket.sendall(response.to_bytes())
-            self.client_socket.close()
-            return
+            if file_content is not None:
+                return HTTPResponse(
+                    200,
+                    {"Content-Type": content_type},
+                    file_content
+                )
 
-        #ROUTER
-        handler = self.router.resolve(request)
-        response = handler(request)
-
-        if response is None:
-            response = HTTPResponse(
-                500,
-                {"Content-Type": "text/plain"},
-                "Handler returned no response"
-            )
+            #Router
+            handler = self.router.resolve(req)
+            return handler(req)
+        
+        response = self.router.apply_middlewares(request, final_handler)
 
         self.client_socket.sendall(response.to_bytes())
         self.client_socket.close()

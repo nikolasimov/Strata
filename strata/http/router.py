@@ -4,6 +4,7 @@ class HTTPRouter:
     def __init__(self):
         self.routes = {}
         self.proxy_routes = {}
+        self.middlewares = []
 
     def add(self, method, path, handler):
         method = method.upper()
@@ -20,9 +21,7 @@ class HTTPRouter:
         route_key = (method, path)
 
         if route_key in self.routes:
-            raise RuntimeError(
-                f"Route {method} {path} is already registered"
-            )
+            raise RuntimeError(f"Route {method} {path} is already registered")
 
         self.routes[route_key] = handler
 
@@ -36,14 +35,36 @@ class HTTPRouter:
         return HTTPResponse(
             status_code=404,
             headers={"Content-Type": "text/plain"},
-            body=f"404 Not Found\n",
+            body="404 Not Found\n",
         )
-    
+
+    # -------------------------
+    # Proxy system
+    # -------------------------
     def add_proxy(self, path_prefix, target_url):
         self.proxy_routes[path_prefix] = target_url
-        
+
     def match_proxy(self, path):
         for prefix, target in self.proxy_routes.items():
             if path.startswith(prefix):
                 return target
         return None
+
+    # -------------------------
+    # Middleware system
+    # -------------------------
+    def use(self, middleware):
+        self.middlewares.append(middleware)
+
+    def apply_middlewares(self, request, final_handler):
+        handler = final_handler
+
+        for middleware in reversed(self.middlewares):
+            next_handler = handler
+
+            def make_handler(mw, nxt):
+                return lambda req, mw=mw, nxt=nxt: mw.process(req, nxt)
+
+            handler = make_handler(middleware, next_handler)
+
+        return handler(request)
