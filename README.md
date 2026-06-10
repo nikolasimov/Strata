@@ -29,7 +29,7 @@ Strata is currently a working minimal web server capable of handling static file
 - [x] Reverse proxy
 - [x] Middleware pipeline
 - [ ] Keep-alive connections
-- [ ] Configuration system
+- [x] Configuration system
 - [ ] Request/response logging system
 - [ ] HTTPS support via Python `ssl`
 
